@@ -31,9 +31,11 @@ import {
 // } from "@/components/ui/popover";
 // import { CalendarIcon } from "lucide-react";
 // import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { format, setYear, getYear } from "date-fns";
 import { Textarea } from "@/components/ui/textarea";
+import { useState } from "react";
 
+//
 const formSchema = z.object({
   fullname: z.string().min(3, {
     message: "Username must be at least 2 characters.",
@@ -47,9 +49,27 @@ const formSchema = z.object({
   nationality: z.string(),
   address: z.string().min(10, "Minimal 10 karakter"),
   email: z.string().email(),
+  year: z.string().min(1, "Year is required"),
+  month: z.string().min(1, "Month is required"),
+  day: z.string().min(1, "Day is required"),
 });
 
+// Fungsi untuk mendapatkan jumlah hari berdasarkan bulan dan tahun
+const getDaysInMonth = (year: number, month: number) => {
+  return new Date(year, month, 0).getDate();
+};
+
 export function ProfileForm() {
+  //
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 100 }, (_, i) =>
+    (currentYear - i).toString()
+  );
+  const months = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
+
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+
   // ...
   const form = useForm({
     defaultValues: {
@@ -62,15 +82,25 @@ export function ProfileForm() {
       nationality: "",
       address: "",
       email: "",
+      year: "",
+      month: "",
+      day: "",
     },
     resolver: zodResolver(formSchema),
   });
 
+  //
+  const days =
+    selectedYear && selectedMonth
+      ? getDaysInMonth(parseInt(selectedYear), parseInt(selectedMonth))
+      : 31;
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     console.log(values);
+    // const { year, month, day } = values;
 
-    const phoneNumber = "6285186884843"; // jen
-    // const phoneNumber = "6281775109531"; // paozan
+    // const phoneNumber = "6285186884843"; // jen
+    const phoneNumber = "6281775109531"; // paozan
     const text = encodeURIComponent(`
       Traveller details:
       - Full Name (as per passport): ${values.fullname}
@@ -85,14 +115,14 @@ export function ProfileForm() {
       `);
 
     // Open iphone WA
-    const waUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${text}`;
-    window.location.href = waUrl;
+    // const waUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${text}`;
+    // window.location.href = waUrl;
 
     // Buka WhatsApp Web dengan pesan yang sudah diformat
-    // window.open(
-    //   `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${text}`,
-    //   "_blank"
-    // );
+    window.open(
+      `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${text}`,
+      "_blank"
+    );
   };
 
   return (
@@ -221,7 +251,98 @@ export function ProfileForm() {
                         />
                       </PopoverContent>
                     </Popover> */}
-                    <Input
+
+                    {/* ================================== */}
+                    {/* Pilihan Tahun */}
+                    <FormField
+                      control={form.control}
+                      name="year"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Select
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                setSelectedYear(value);
+                              }}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Year" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {years.map((year) => (
+                                  <SelectItem key={year} value={year}>
+                                    {year}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Pilihan Bulan */}
+                    <FormField
+                      control={form.control}
+                      name="month"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Select
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                setSelectedMonth(value);
+                              }}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Month" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {months.map((month) => (
+                                  <SelectItem key={month} value={month}>
+                                    {month}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Pilihan Hari */}
+                    <FormField
+                      control={form.control}
+                      name="day"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Select onValueChange={field.onChange}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Day" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.from({ length: days }, (_, i) =>
+                                  (i + 1).toString()
+                                ).map((day) => (
+                                  <SelectItem key={day} value={day}>
+                                    {day}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    {/* ================================== */}
+
+                    {/* input manual */}
+                    {/* <Input
                       type="text"
                       placeholder="YYYY-MM-DD"
                       onChange={(e) => {
@@ -232,7 +353,26 @@ export function ProfileForm() {
                           field.onChange(new Date(value));
                         }
                       }}
-                    />
+                    /> */}
+
+                    {/* Dropdown Tahun */}
+                    {/* <Select
+                      onValueChange={(year) =>
+                        field.onChange(setYear(field.value, parseInt(year)))
+                      }
+                      defaultValue={getYear(field.value).toString()}
+                    >
+                      <SelectTrigger className="w-[100px]">
+                        <SelectValue placeholder="Year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {years.map((year) => (
+                          <SelectItem key={year} value={year.toString()}>
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select> */}
                   </div>
                 </FormControl>
                 <FormMessage />
