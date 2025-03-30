@@ -23,15 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// import { DatePicker } from "./DatePicker";
-// import {
-//   Popover,
-//   PopoverContent,
-//   PopoverTrigger,
-// } from "@/components/ui/popover";
-// import { CalendarIcon } from "lucide-react";
-// import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 
@@ -42,16 +33,12 @@ const formSchema = z.object({
   }),
   passport: z.string(),
   gender: z.string(),
-  // dateOfBirth: z.date(),
-  dateOfBirth: z.coerce.date({ message: "Invalid date" }),
+  dateOfBirth: z.string(),
   height: z.coerce.number(),
   weight: z.coerce.number(),
   nationality: z.string(),
   address: z.string().min(10, "Minimal 10 karakter"),
   email: z.string().email(),
-  year: z.string().min(1, "Year is required"),
-  month: z.string().min(1, "Month is required"),
-  day: z.string().min(1, "Day is required"),
 });
 
 // Fungsi untuk mendapatkan jumlah hari berdasarkan bulan dan tahun
@@ -69,6 +56,19 @@ export function ProfileForm() {
 
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [selectedDay, setSelectedDay] = useState<string>("");
+
+  // function
+  const updateDateOfBirth = (year: string, month: string, day: string) => {
+    // console.log("updateDateOfBirth", year, month, day);
+    if (year && month && day) {
+      const newDate = `${year}-${month.padStart(2, "0")}-${day.padStart(
+        2,
+        "0"
+      )}`;
+      form.setValue("dateOfBirth", newDate); // 🔥 Masukkan nilai ke form
+    }
+  };
 
   // ...
   const form = useForm({
@@ -76,15 +76,12 @@ export function ProfileForm() {
       fullname: "",
       passport: "",
       gender: "",
-      dateOfBirth: new Date(),
+      dateOfBirth: "",
       height: 0,
       weight: 0,
       nationality: "",
       address: "",
       email: "",
-      year: "",
-      month: "",
-      day: "",
     },
     resolver: zodResolver(formSchema),
   });
@@ -96,17 +93,16 @@ export function ProfileForm() {
       : 31;
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
-    // const { year, month, day } = values;
+    // console.log("dateOfBirth", values.dateOfBirth);
 
-    // const phoneNumber = "6285186884843"; // jen
-    const phoneNumber = "6281775109531"; // paozan
+    const phoneNumber = "6285186884843"; // jen
+    // const phoneNumber = "6281775109531"; // paozan
     const text = encodeURIComponent(`
       Traveller details:
       - Full Name (as per passport): ${values.fullname}
       - Passport Number: ${values.passport}
       - Gender: ${values.gender}
-      - Date of Birth: ${format(values.dateOfBirth, "PPP")}
+      - Date of Birth: ${values.dateOfBirth}
       - Height: ${values.height}
       - Weight: ${values.weight}
       - Nationality: ${values.nationality}
@@ -114,24 +110,21 @@ export function ProfileForm() {
       - E-mail Address: ${values.email}
       `);
 
-    // Open iphone WA
-    // const waUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${text}`;
-    // window.location.href = waUrl;
+    //! Open iphone WA
+    const waUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${text}`;
+    window.location.href = waUrl;
 
-    // Buka WhatsApp Web dengan pesan yang sudah diformat
-    window.open(
-      `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${text}`,
-      "_blank"
-    );
+    //! Buka WhatsApp Web dengan pesan yang sudah diformat
+    // window.open(
+    //   `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${text}`,
+    //   "_blank"
+    // );
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="grid gap-5 md:grid-cols-2 m-5">
-          {/* bagian kiri */}
-          {/* <div className="flex flex-col gap-10"> */}
-
           {/* Full Name */}
           <FormField
             control={form.control}
@@ -155,7 +148,7 @@ export function ProfileForm() {
               <FormItem>
                 <FormLabel>Passport Number:</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input placeholder="AAF0326..." {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -189,190 +182,123 @@ export function ProfileForm() {
             )}
           />
 
-          {/* Date of Birth: */}
-          {/* <FormField
-            control={form.control}
-            name="dateOfBirth"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Date of Birth:</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className="w-[200px] justify-start text-left"
-                      >
-                        {field.value
-                          ? format(field.value, "PPP")
-                          : "Pick a date"}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          /> */}
-
-          {/* Date of Birth: */}
+          {/* Date of Birth */}
           <FormField
             control={form.control}
             name="dateOfBirth"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Date of Birth: "YYYY-MM-DD"</FormLabel>
+                <FormLabel>Date of Birth (YYYY-MM-DD)</FormLabel>
                 <FormControl>
-                  <div className="flex items-center gap-2">
-                    {/* <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline">
-                          {field.value
-                            ? format(field.value, "PPP")
-                            : "Pick a date"}
-                          <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover> */}
+                  <div className="flex gap-2">
+                    <Select
+                      onValueChange={(value) => {
+                        setSelectedYear(value);
+                        updateDateOfBirth(value, selectedMonth, selectedDay);
 
-                    {/* ================================== */}
-                    {/* Pilihan Tahun */}
-                    <FormField
-                      control={form.control}
-                      name="year"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Select
-                              onValueChange={(value) => {
-                                field.onChange(value);
-                                setSelectedYear(value);
-                              }}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Year" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {years.map((year) => (
-                                  <SelectItem key={year} value={year}>
-                                    {year}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Pilihan Bulan */}
-                    <FormField
-                      control={form.control}
-                      name="month"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Select
-                              onValueChange={(value) => {
-                                field.onChange(value);
-                                setSelectedMonth(value);
-                              }}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Month" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {months.map((month) => (
-                                  <SelectItem key={month} value={month}>
-                                    {month}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Pilihan Hari */}
-                    <FormField
-                      control={form.control}
-                      name="day"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Select onValueChange={field.onChange}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Day" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {Array.from({ length: days }, (_, i) =>
-                                  (i + 1).toString()
-                                ).map((day) => (
-                                  <SelectItem key={day} value={day}>
-                                    {day}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    {/* ================================== */}
-
-                    {/* input manual */}
-                    {/* <Input
-                      type="text"
-                      placeholder="YYYY-MM-DD"
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        console.log(value);
-                        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-                          console.log("value");
-                          field.onChange(new Date(value));
+                        // pengecekan sebelum mengubah dateOfBirth
+                        if (value && selectedMonth && selectedDay) {
+                          const newDate = `${value}-${selectedMonth.padStart(
+                            2,
+                            "0"
+                          )}-${selectedDay.padStart(2, "0")}`;
+                          field.onChange(newDate);
                         }
-                      }}
-                    /> */}
 
-                    {/* Dropdown Tahun */}
-                    {/* <Select
-                      onValueChange={(year) =>
-                        field.onChange(setYear(field.value, parseInt(year)))
-                      }
-                      defaultValue={getYear(field.value).toString()}
+                        // const newDate = `${value}-${selectedMonth.padStart(
+                        //   2,
+                        //   "0"
+                        // )}-${selectedDay.padStart(2, "0")}`;
+                        // field.onChange(newDate);
+                      }}
                     >
-                      <SelectTrigger className="w-[100px]">
+                      <SelectTrigger id="year" name="year">
+                        {" "}
+                        {/* ✅ Tambahkan id & name */}
                         <SelectValue placeholder="Year" />
                       </SelectTrigger>
                       <SelectContent>
                         {years.map((year) => (
-                          <SelectItem key={year} value={year.toString()}>
+                          <SelectItem key={year} value={year}>
                             {year}
                           </SelectItem>
                         ))}
                       </SelectContent>
-                    </Select> */}
+                    </Select>
+
+                    {/* Pilihan Bulan */}
+                    <Select
+                      onValueChange={(value) => {
+                        setSelectedMonth(value);
+                        updateDateOfBirth(selectedYear, value, selectedDay);
+
+                        // pengecekan sebelum mengubah dateOfBirth
+                        if (value && selectedMonth && selectedDay) {
+                          const newDate = `${value}-${selectedYear.padStart(
+                            2,
+                            "0"
+                          )}-${selectedDay.padStart(2, "0")}`;
+                          field.onChange(newDate);
+                        }
+
+                        // const newDate = `${selectedYear}-${value.padStart(
+                        //   2,
+                        //   "0"
+                        // )}-${selectedDay.padStart(2, "0")}`;
+                        // field.onChange(newDate);
+                      }}
+                    >
+                      <SelectTrigger id="month" name="month">
+                        {" "}
+                        {/* ✅ Tambahkan id & name */}
+                        <SelectValue placeholder="Month" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {months.map((month) => (
+                          <SelectItem key={month} value={month}>
+                            {month}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {/* Pilihan Hari */}
+                    <Select
+                      onValueChange={(value) => {
+                        setSelectedDay(value);
+                        updateDateOfBirth(selectedYear, selectedMonth, value);
+
+                        // pengecekan sebelum mengubah dateOfBirth
+                        if (value && selectedMonth && selectedDay) {
+                          const newDate = `${value}-${selectedMonth.padStart(
+                            2,
+                            "0"
+                          )}-${selectedDay.padStart(2, "0")}`;
+                          field.onChange(newDate);
+                        }
+
+                        // const newDate = `${selectedYear}-${selectedMonth.padStart(
+                        //   2,
+                        //   "0"
+                        // )}-${value.padStart(2, "0")}`;
+                        // field.onChange(newDate);
+                      }}
+                    >
+                      <SelectTrigger id="day" name="day">
+                        {" "}
+                        {/* ✅ Tambahkan id & name */}
+                        <SelectValue placeholder="Day" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: days }, (_, i) =>
+                          (i + 1).toString()
+                        ).map((day) => (
+                          <SelectItem key={day} value={day}>
+                            {day}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </FormControl>
                 <FormMessage />
@@ -426,10 +352,149 @@ export function ProfileForm() {
                       <SelectValue placeholder="Nationality" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Adult">USA</SelectItem>
-                      <SelectItem value="Children 3-12 Years Old">
-                        Germany
+                      <SelectItem value="Afghanistan">Afghanistan</SelectItem>
+                      <SelectItem value="Albania">Albania</SelectItem>
+                      <SelectItem value="Algeria">Algeria</SelectItem>
+                      <SelectItem value="Andorra">Andorra</SelectItem>
+                      <SelectItem value="Angola">Angola</SelectItem>
+                      <SelectItem value="Argentina">Argentina</SelectItem>
+                      <SelectItem value="Armenia">Armenia</SelectItem>
+                      <SelectItem value="Australia">Australia</SelectItem>
+                      <SelectItem value="Austria">Austria</SelectItem>
+                      <SelectItem value="Azerbaijan">Azerbaijan</SelectItem>
+                      <SelectItem value="Bahrain">Bahrain</SelectItem>
+                      <SelectItem value="Bangladesh">Bangladesh</SelectItem>
+                      <SelectItem value="Belarus">Belarus</SelectItem>
+                      <SelectItem value="Belgium">Belgium</SelectItem>
+                      <SelectItem value="Belize">Belize</SelectItem>
+                      <SelectItem value="Benin">Benin</SelectItem>
+                      <SelectItem value="Bhutan">Bhutan</SelectItem>
+                      <SelectItem value="Bolivia">Bolivia</SelectItem>
+                      <SelectItem value="Bosnia and Herzegovina">
+                        Bosnia and Herzegovina
                       </SelectItem>
+                      <SelectItem value="Botswana">Botswana</SelectItem>
+                      <SelectItem value="Brazil">Brazil</SelectItem>
+                      <SelectItem value="Brunei">Brunei</SelectItem>
+                      <SelectItem value="Bulgaria">Bulgaria</SelectItem>
+                      <SelectItem value="Burkina Faso">Burkina Faso</SelectItem>
+                      <SelectItem value="Burundi">Burundi</SelectItem>
+                      <SelectItem value="Cambodia">Cambodia</SelectItem>
+                      <SelectItem value="Cameroon">Cameroon</SelectItem>
+                      <SelectItem value="Canada">Canada</SelectItem>
+                      <SelectItem value="Cape Verde">Cape Verde</SelectItem>
+                      <SelectItem value="Central African Republic">
+                        Central African Republic
+                      </SelectItem>
+                      <SelectItem value="Chad">Chad</SelectItem>
+                      <SelectItem value="Chile">Chile</SelectItem>
+                      <SelectItem value="China">China</SelectItem>
+                      <SelectItem value="Colombia">Colombia</SelectItem>
+                      <SelectItem value="Congo">Congo</SelectItem>
+                      <SelectItem value="Costa Rica">Costa Rica</SelectItem>
+                      <SelectItem value="Croatia">Croatia</SelectItem>
+                      <SelectItem value="Cuba">Cuba</SelectItem>
+                      <SelectItem value="Cyprus">Cyprus</SelectItem>
+                      <SelectItem value="Czech Republic">
+                        Czech Republic
+                      </SelectItem>
+                      <SelectItem value="Denmark">Denmark</SelectItem>
+                      <SelectItem value="Djibouti">Djibouti</SelectItem>
+                      <SelectItem value="Dominican Republic">
+                        Dominican Republic
+                      </SelectItem>
+                      <SelectItem value="Ecuador">Ecuador</SelectItem>
+                      <SelectItem value="Egypt">Egypt</SelectItem>
+                      <SelectItem value="El Salvador">El Salvador</SelectItem>
+                      <SelectItem value="Estonia">Estonia</SelectItem>
+                      <SelectItem value="Ethiopia">Ethiopia</SelectItem>
+                      <SelectItem value="Finland">Finland</SelectItem>
+                      <SelectItem value="France">France</SelectItem>
+                      <SelectItem value="Gabon">Gabon</SelectItem>
+                      <SelectItem value="Gambia">Gambia</SelectItem>
+                      <SelectItem value="Georgia">Georgia</SelectItem>
+                      <SelectItem value="Germany">Germany</SelectItem>
+                      <SelectItem value="Ghana">Ghana</SelectItem>
+                      <SelectItem value="Greece">Greece</SelectItem>
+                      <SelectItem value="Guatemala">Guatemala</SelectItem>
+                      <SelectItem value="Haiti">Haiti</SelectItem>
+                      <SelectItem value="Honduras">Honduras</SelectItem>
+                      <SelectItem value="Hungary">Hungary</SelectItem>
+                      <SelectItem value="Iceland">Iceland</SelectItem>
+                      <SelectItem value="India">India</SelectItem>
+                      <SelectItem value="Indonesia">Indonesia</SelectItem>
+                      <SelectItem value="Iran">Iran</SelectItem>
+                      <SelectItem value="Iraq">Iraq</SelectItem>
+                      <SelectItem value="Ireland">Ireland</SelectItem>
+                      <SelectItem value="Israel">Israel</SelectItem>
+                      <SelectItem value="Italy">Italy</SelectItem>
+                      <SelectItem value="Jamaica">Jamaica</SelectItem>
+                      <SelectItem value="Japan">Japan</SelectItem>
+                      <SelectItem value="Jordan">Jordan</SelectItem>
+                      <SelectItem value="Kazakhstan">Kazakhstan</SelectItem>
+                      <SelectItem value="Kenya">Kenya</SelectItem>
+                      <SelectItem value="North Korea">North Korea</SelectItem>
+                      <SelectItem value="South Korea">South Korea</SelectItem>
+                      <SelectItem value="Kuwait">Kuwait</SelectItem>
+                      <SelectItem value="Kyrgyzstan">Kyrgyzstan</SelectItem>
+                      <SelectItem value="Laos">Laos</SelectItem>
+                      <SelectItem value="Latvia">Latvia</SelectItem>
+                      <SelectItem value="Lebanon">Lebanon</SelectItem>
+                      <SelectItem value="Libya">Libya</SelectItem>
+                      <SelectItem value="Lithuania">Lithuania</SelectItem>
+                      <SelectItem value="Luxembourg">Luxembourg</SelectItem>
+                      <SelectItem value="Madagascar">Madagascar</SelectItem>
+                      <SelectItem value="Malaysia">Malaysia</SelectItem>
+                      <SelectItem value="Maldives">Maldives</SelectItem>
+                      <SelectItem value="Mali">Mali</SelectItem>
+                      <SelectItem value="Malta">Malta</SelectItem>
+                      <SelectItem value="Mexico">Mexico</SelectItem>
+                      <SelectItem value="Moldova">Moldova</SelectItem>
+                      <SelectItem value="Monaco">Monaco</SelectItem>
+                      <SelectItem value="Mongolia">Mongolia</SelectItem>
+                      <SelectItem value="Montenegro">Montenegro</SelectItem>
+                      <SelectItem value="Morocco">Morocco</SelectItem>
+                      <SelectItem value="Mozambique">Mozambique</SelectItem>
+                      <SelectItem value="Myanmar">Myanmar</SelectItem>
+                      <SelectItem value="Namibia">Namibia</SelectItem>
+                      <SelectItem value="Nepal">Nepal</SelectItem>
+                      <SelectItem value="Netherlands">Netherlands</SelectItem>
+                      <SelectItem value="New Zealand">New Zealand</SelectItem>
+                      <SelectItem value="Nigeria">Nigeria</SelectItem>
+                      <SelectItem value="Norway">Norway</SelectItem>
+                      <SelectItem value="Oman">Oman</SelectItem>
+                      <SelectItem value="Pakistan">Pakistan</SelectItem>
+                      <SelectItem value="Panama">Panama</SelectItem>
+                      <SelectItem value="Paraguay">Paraguay</SelectItem>
+                      <SelectItem value="Peru">Peru</SelectItem>
+                      <SelectItem value="Philippines">Philippines</SelectItem>
+                      <SelectItem value="Poland">Poland</SelectItem>
+                      <SelectItem value="Portugal">Portugal</SelectItem>
+                      <SelectItem value="Qatar">Qatar</SelectItem>
+                      <SelectItem value="Romania">Romania</SelectItem>
+                      <SelectItem value="Russia">Russia</SelectItem>
+                      <SelectItem value="Saudi Arabia">Saudi Arabia</SelectItem>
+                      <SelectItem value="Singapore">Singapore</SelectItem>
+                      <SelectItem value="South Africa">South Africa</SelectItem>
+                      <SelectItem value="Spain">Spain</SelectItem>
+                      <SelectItem value="Sri Lanka">Sri Lanka</SelectItem>
+                      <SelectItem value="Sweden">Sweden</SelectItem>
+                      <SelectItem value="Switzerland">Switzerland</SelectItem>
+                      <SelectItem value="Thailand">Thailand</SelectItem>
+                      <SelectItem value="Turkey">Turkey</SelectItem>
+                      <SelectItem value="Ukraine">Ukraine</SelectItem>
+                      <SelectItem value="United Arab Emirates">
+                        United Arab Emirates
+                      </SelectItem>
+                      <SelectItem value="United Kingdom">
+                        United Kingdom
+                      </SelectItem>
+                      <SelectItem value="United States">
+                        United States
+                      </SelectItem>
+                      <SelectItem value="Vietnam">Vietnam</SelectItem>
+                      <SelectItem value="Yemen">Yemen</SelectItem>
+                      <SelectItem value="Zimbabwe">Zimbabwe</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormControl>
